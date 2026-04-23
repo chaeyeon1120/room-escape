@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>학교의 비밀 — 범인을 찾아라</title>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0b08;
+  --paper: #1a1610;
+  --card: #211d16;
+  --accent: #c8a951;
+  --accent2: #8b1a1a;
+  --text: #e8dcc8;
+  --muted: #7a6e5a;
+  --success: #4a7c59;
+  --error: #8b1a1a;
+  --border: rgba(200,169,81,0.15);
+  --glow: rgba(200,169,81,0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  cursor: default;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(200,169,81,0.05) 0%, transparent 70%),
+    repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(200,169,81,0.01) 50px, rgba(200,169,81,0.01) 51px),
+    repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(200,169,81,0.01) 50px, rgba(200,169,81,0.01) 51px);
+  pointer-events: none; z-index: 0;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; position: relative; z-index: 1; min-height: 100vh; }
+.screen.active { display: flex; flex-direction: column; align-items: center; }
+
+/* ── INTRO ── */
+#screen-intro {
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+.intro-emblem {
+  font-size: 64px;
+  margin-bottom: 24px;
+  filter: drop-shadow(0 0 20px rgba(200,169,81,0.4));
+  animation: pulse 3s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{filter:drop-shadow(0 0 20px rgba(200,169,81,0.4))} 50%{filter:drop-shadow(0 0 40px rgba(200,169,81,0.7))} }
+
+.intro-tag {
+  font-size: 11px; letter-spacing: 5px; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 16px; font-weight: 500;
+}
+.intro-title {
+  font-family: 'Nanum Myeongjo', serif;
+  font-size: clamp(32px, 6vw, 60px);
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.intro-title span { color: var(--accent); }
+.intro-sub {
+  font-size: 15px; color: var(--muted); margin-bottom: 40px; line-height: 1.7;
+}
+
+.role-select {
+  display: flex; gap: 16px; margin-bottom: 32px;
+  flex-wrap: wrap; justify-content: center;
+}
+.role-card {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  padding: 28px 32px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  min-width: 160px;
+}
+.role-card:hover, .role-card.selected {
+  border-color: var(--accent);
+  background: rgba(200,169,81,0.08);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(200,169,81,0.15);
+}
+.role-icon { font-size: 36px; margin-bottom: 10px; }
+.role-name { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.role-desc { font-size: 12px; color: var(--muted); }
+
+.pw-area {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  width: 100%; max-width: 360px;
+  display: none;
+}
+.pw-area label { font-size: 13px; color: var(--muted); margin-bottom: 8px; display: block; }
+
+input[type="text"], input[type="password"], textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 0;
+}
+input:focus, textarea:focus { border-color: var(--accent); }
+textarea { resize: vertical; min-height: 80px; margin-bottom: 0; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px 32px; border: none; border-radius: 12px;
+  font-family: 'Noto Sans KR', sans-serif; font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s ease; text-decoration: none;
+}
+.btn-gold {
+  background: linear-gradient(135deg, var(--accent), #a07830);
+  color: #0d0b08; width: 100%; max-width: 360px;
+}
+.btn-gold:hover { filter: brightness(1.15); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(200,169,81,0.3); }
+.btn-outline {
+  background: transparent; color: var(--accent);
+  border: 1.5px solid var(--accent);
+  padding: 10px 20px; font-size: 13px;
+}
+.btn-outline:hover { background: rgba(200,169,81,0.08); }
+.btn-red { background: var(--accent2); color: var(--text); }
+.btn-red:hover { filter: brightness(1.2); }
+
+.err-msg { color: var(--error); font-size: 13px; margin-top: 10px; display: none; }
+
+/* ── ADMIN ── */
+#screen-admin { padding: 30px 20px; width: 100%; max-width: 800px; }
+.admin-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 32px; flex-wrap: wrap; gap: 12px;
+}
+.admin-title { font-family: 'Nanum Myeongjo', serif; font-size: 28px; font-weight: 800; }
+.admin-title span { color: var(--accent); }
+
+.section-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  margin-bottom: 20px;
+}
+.section-title {
+  font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--accent); font-weight: 600; margin-bottom: 20px;
+  padding-bottom: 12px; border-bottom: 1px solid var(--border);
+}
+
+.clue-list { list-style: none; }
+.clue-item {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+}
+.clue-item:hover { border-color: rgba(200,169,81,0.4); }
+.clue-num {
+  min-width: 28px; height: 28px;
+  background: var(--accent); color: #0d0b08;
+  border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; flex-shrink: 0;
+}
+.clue-content { flex: 1; }
+.clue-location { font-size: 11px; color: var(--accent); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.clue-text { font-size: 14px; font-weight: 500; margin-bottom: 3px; }
+.clue-answer-text { font-size: 12px; color: var(--muted); }
+.clue-answer-text span { color: var(--success); }
+
+.form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.form-row > * { flex: 1; min-width: 180px; }
+.form-group { margin-bottom: 14px; }
+.form-group label { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: block; letter-spacing: 1px; text-transform: uppercase; }
+
+.location-select {
+  width: 100%; background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 12px 16px; color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif; font-size: 14px; outline: none;
+  transition: border-color 0.2s; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23c8a951'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+}
+.location-select:focus { border-color: var(--accent); }
+
+.suspects-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;
+  margin-bottom: 14px;
+}
+.suspect-input-card {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px;
+}
+.suspect-input-card label { font-size: 11px; color: var(--muted); margin-bottom: 6px; display: block; }
+.suspect-input-card input { margin-bottom: 8px; font-size: 13px; }
+
+.answer-select {
+  width: 100%; background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 12px 16px; color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif; font-size: 14px; outline: none;
+  transition: border-color 0.2s; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23c8a951'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+}
+
+.badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.badge-count { background: rgba(200,169,81,0.15); color: var(--accent); }
+
+/* ── GAME ── */
+#screen-game { width: 100%; padding: 0; }
+
+.game-top {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(13,11,8,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex; align-items: center; gap: 16px;
+}
+.game-progress-bar { flex: 1; height: 4px; background: rgba(200,169,81,0.1); border-radius: 10px; overflow: hidden; }
+.game-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 10px; transition: width 0.6s ease; }
+.game-progress-text { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.game-stage-label {
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--accent); font-weight: 600;
+}
+
+.game-body { padding: 32px 20px; max-width: 720px; margin: 0 auto; }
+
+.location-header {
+  text-align: center;
+  margin-bottom: 32px;
+  animation: fadeUp 0.5s ease;
+}
+.location-icon { font-size: 52px; margin-bottom: 12px; filter: drop-shadow(0 0 16px rgba(200,169,81,0.3)); }
+.location-name {
+  font-family: 'Nanum Myeongjo', serif;
+  font-size: clamp(22px, 4vw, 36px);
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.location-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+.story-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--text);
+  animation: fadeUp 0.5s ease 0.1s both;
+}
+.story-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; font-weight: 600; }
+
+.clue-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  margin-bottom: 20px;
+  animation: fadeUp 0.5s ease 0.2s both;
+  position: relative;
+  overflow: hidden;
+}
+.clue-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+}
+.clue-card-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent2); margin-bottom: 12px; font-weight: 600; }
+.clue-card-text {
+  font-family: 'Nanum Myeongjo', serif;
+  font-size: clamp(18px, 3.5vw, 26px);
+  font-weight: 700;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.answer-wrap { display: flex; gap: 10px; }
+.answer-wrap input { flex: 1; font-size: 16px; }
+.answer-wrap .btn { white-space: nowrap; padding: 12px 20px; width: auto; font-size: 14px; }
+
+.feedback-box {
+  border-radius: 12px; padding: 14px 18px;
+  font-size: 14px; font-weight: 500;
+  display: none; align-items: center; gap: 12px;
+  margin-top: 14px; animation: fadeIn 0.3s ease;
+}
+.feedback-box.show { display: flex; }
+.feedback-box.correct { background: rgba(74,124,89,0.15); border: 1px solid rgba(74,124,89,0.4); color: #6abf85; }
+.feedback-box.wrong { background: rgba(139,26,26,0.15); border: 1px solid rgba(139,26,26,0.4); color: #e06060; }
+
+.evidence-collected {
+  background: rgba(200,169,81,0.06);
+  border: 1px solid rgba(200,169,81,0.2);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  animation: fadeUp 0.5s ease 0.3s both;
+}
+.evidence-title { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; font-weight: 600; }
+.evidence-items { display: flex; flex-wrap: wrap; gap: 8px; }
+.evidence-tag {
+  background: rgba(200,169,81,0.1); color: var(--accent);
+  border: 1px solid rgba(200,169,81,0.3);
+  border-radius: 20px; padding: 6px 14px;
+  font-size: 12px; font-weight: 500;
+}
+
+/* ── FINAL ── */
+.final-section {
+  margin-top: 8px;
+  animation: fadeUp 0.5s ease both;
+}
+.final-title {
+  font-family: 'Nanum Myeongjo', serif;
+  font-size: clamp(22px, 4vw, 32px);
+  font-weight: 800; margin-bottom: 8px; color: var(--accent);
+}
+.final-sub { font-size: 14px; color: var(--muted); margin-bottom: 24px; line-height: 1.7; }
+
+.suspects-grid-game {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;
+  margin-bottom: 24px;
+}
+.suspect-btn {
+  background: var(--card); border: 2px solid var(--border);
+  border-radius: 16px; padding: 20px 14px;
+  cursor: pointer; text-align: center; transition: all 0.25s ease;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.suspect-btn:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(200,169,81,0.15); }
+.suspect-btn.selected { border-color: var(--accent2); background: rgba(139,26,26,0.12); }
+.suspect-emoji { font-size: 36px; margin-bottom: 8px; }
+.suspect-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.suspect-role { font-size: 12px; color: var(--muted); }
+
+/* ── RESULT ── */
+#screen-result { justify-content: center; padding: 40px 20px; text-align: center; }
+.result-icon { font-size: 80px; margin-bottom: 20px; animation: resultPop 0.6s ease; }
+@keyframes resultPop { 0%{transform:scale(0) rotate(-20deg)} 70%{transform:scale(1.2) rotate(5deg)} 100%{transform:scale(1) rotate(0)} }
+.result-title { font-family: 'Nanum Myeongjo', serif; font-size: clamp(28px, 5vw, 48px); font-weight: 800; margin-bottom: 12px; }
+.result-title.success { color: var(--accent); }
+.result-title.fail { color: var(--accent2); }
+.result-msg { font-size: 16px; color: var(--muted); margin-bottom: 32px; line-height: 1.7; max-width: 500px; }
+.result-reveal {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; padding: 28px; margin-bottom: 28px;
+  max-width: 500px; width: 100%;
+}
+.result-reveal-label { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; font-weight: 600; }
+.result-criminal { font-family: 'Nanum Myeongjo', serif; font-size: 28px; font-weight: 800; color: var(--accent2); margin-bottom: 4px; }
+.result-criminal-role { font-size: 14px; color: var(--muted); }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+.shake { animation: shake 0.3s ease; }
+
+.divider { width: 60px; height: 2px; background: linear-gradient(90deg, var(--accent2), var(--accent)); margin: 0 auto 24px; border-radius: 2px; }
+
+.empty-state { text-align: center; padding: 36px; color: var(--muted); }
+.empty-state .e-icon { font-size: 40px; margin-bottom: 10px; }
+
+/* delete btn */
+.del-btn {
+  background: transparent; border: 1px solid rgba(139,26,26,0.4); color: var(--accent2);
+  border-radius: 8px; padding: 6px 12px; font-size: 12px; font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+}
+.del-btn:hover { background: var(--accent2); color: var(--text); }
+
+@media (max-width: 600px) {
+  .role-select { flex-direction: column; align-items: center; }
+  .role-card { width: 100%; max-width: 280px; }
+  .form-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ 인트로 ══ -->
+<div class="screen active" id="screen-intro">
+  <div class="intro-emblem">🔍</div>
+  <div class="intro-tag">Mystery · School Edition</div>
+  <h1 class="intro-title">학교의 <span>비밀</span></h1>
+  <p class="intro-sub">누군가 사건을 일으켰다.<br>단서를 모아 범인을 밝혀내라.</p>
+
+  <div class="role-select">
+    <div class="role-card" id="card-student" onclick="selectRole('student')">
+      <div class="role-icon">🕵️</div>
+      <div class="role-name">탐정 (학생)</div>
+      <div class="role-desc">사건을 수사한다</div>
+    </div>
+    <div class="role-card" id="card-admin" onclick="selectRole('admin')">
+      <div class="role-icon">🗝️</div>
+      <div class="role-name">출제자 (선생님)</div>
+      <div class="role-desc">사건을 설계한다</div>
+    </div>
+  </div>
+
+  <div class="pw-area" id="pwArea">
+    <label>선생님 비밀번호</label>
+    <input type="password" id="adminPwInput" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="err-msg" id="pwErr">❌ 비밀번호가 틀렸어요</div>
+  </div>
+
+  <button class="btn btn-gold" onclick="doLogin()">입장하기 →</button>
+</div>
+
+<!-- ══ 관리자 ══ -->
+<div class="screen" id="screen-admin">
+  <div class="admin-header">
+    <div class="admin-title">🗝️ 사건 <span>설계실</span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-outline" onclick="goIntro()">← 나가기</button>
+      <button class="btn btn-gold" style="width:auto;padding:10px 20px;font-size:13px" onclick="saveAndPreview()">💾 저장</button>
+    </div>
+  </div>
+
+  <!-- 용의자 설정 -->
+  <div class="section-card">
+    <div class="section-title">👥 용의자 등록 (최대 5명)</div>
+    <div class="suspects-grid" id="suspectsGrid">
+      <div class="suspect-input-card">
+        <label>이름</label>
+        <input type="text" class="s-name" placeholder="예: 김철수">
+        <label>역할/직책</label>
+        <input type="text" class="s-role" placeholder="예: 체육 선생님">
+        <label>이모지</label>
+        <input type="text" class="s-emoji" placeholder="예: 👨‍🏫" maxlength="4">
+      </div>
+      <div class="suspect-input-card">
+        <label>이름</label>
+        <input type="text" class="s-name" placeholder="예: 이영희">
+        <label>역할/직책</label>
+        <input type="text" class="s-role" placeholder="예: 도서관 사서">
+        <label>이모지</label>
+        <input type="text" class="s-emoji" placeholder="예: 👩‍💼" maxlength="4">
+      </div>
+      <div class="suspect-input-card">
+        <label>이름</label>
+        <input type="text" class="s-name" placeholder="예: 박민준">
+        <label>역할/직책</label>
+        <input type="text" class="s-role" placeholder="예: 3학년 학생">
+        <label>이모지</label>
+        <input type="text" class="s-emoji" placeholder="예: 🧑‍🎓" maxlength="4">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>🎯 진짜 범인</label>
+      <select class="answer-select" id="criminalSelect">
+        <option value="">— 용의자를 먼저 입력하세요 —</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>범인의 동기 / 결말 스토리</label>
+      <textarea id="endingStory" placeholder="예: 김철수는 시험지를 훔쳐 성적을 조작하려 했습니다. 그는 체육관 열쇠를 이용해..."></textarea>
+    </div>
+  </div>
+
+  <!-- 단서 추가 -->
+  <div class="section-card">
+    <div class="section-title">🔎 단서 추가</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>장소</label>
+        <select class="location-select" id="newClueLocation">
+          <option value="교실">🏫 교실</option>
+          <option value="복도">🚪 복도</option>
+          <option value="도서관">📚 도서관</option>
+          <option value="교무실">🗃️ 교무실</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>단서 / 수수께끼 문제</label>
+      <textarea id="newClueText" placeholder="예: 교실 창문 아래에서 발견된 쪽지. '열쇠는 숫자로 말한다. 3+7은?'"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>정답</label>
+        <input type="text" id="newClueAnswer" placeholder="예: 10">
+      </div>
+      <div class="form-group">
+        <label>정답 후 획득하는 단서</label>
+        <input type="text" id="newClueEvidence" placeholder="예: 찢어진 체육복 조각">
+      </div>
+    </div>
+    <button class="btn btn-gold" style="max-width:200px;font-size:14px;padding:12px 20px" onclick="addClue()">+ 단서 추가</button>
+  </div>
+
+  <!-- 단서 목록 -->
+  <div class="section-card">
+    <div class="section-title">📋 등록된 단서 <span class="badge badge-count" id="clueCountBadge">0개</span></div>
+    <ul class="clue-list" id="clueList">
+      <li><div class="empty-state"><div class="e-icon">📭</div><p>아직 단서가 없어요</p></div></li>
+    </ul>
+  </div>
+
+  <!-- 코드 설정 -->
+  <div class="section-card">
+    <div class="section-title">🔒 비밀번호 설정</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>학생 참여 코드</label>
+        <input type="password" id="newStudentCode" placeholder="기본: 0000">
+      </div>
+      <div class="form-group">
+        <label>선생님 비밀번호</label>
+        <input type="password" id="newTeacherPw" placeholder="기본: 1234">
+      </div>
+    </div>
+    <button class="btn btn-outline" style="width:auto" onclick="saveCodes()">코드 저장</button>
+  </div>
+</div>
+
+<!-- ══ 게임 ══ -->
+<div class="screen" id="screen-game">
+  <div class="game-top">
+    <div class="game-stage-label" id="gameStageLabel">교실</div>
+    <div class="game-progress-bar">
+      <div class="game-progress-fill" id="gameProgressFill" style="width:0%"></div>
+    </div>
+    <div class="game-progress-text" id="gameProgressText">0 / 0</div>
+  </div>
+  <div class="game-body" id="gameBody"></div>
+</div>
+
+<!-- ══ 결과 ══ -->
+<div class="screen" id="screen-result">
+  <div class="result-icon" id="resultIcon"></div>
+  <h2 class="result-title" id="resultTitle"></h2>
+  <div class="divider"></div>
+  <p class="result-msg" id="resultMsg"></p>
+  <div class="result-reveal" id="resultReveal" style="display:none">
+    <div class="result-reveal-label">✦ 진짜 범인</div>
+    <div class="result-criminal" id="resultCriminalName"></div>
+    <div class="result-criminal-role" id="resultCriminalRole"></div>
+    <p style="margin-top:16px;font-size:14px;color:var(--muted);line-height:1.8" id="resultEnding"></p>
+  </div>
+  <button class="btn btn-gold" onclick="goIntro()">🔄 처음으로</button>
+</div>
+
+<script>
+// ── STATE ──
+let adminPw = '1234';
+let studentCode = '0000';
+let currentRole = 'student';
+let clues = [];
+let suspects = [];
+let criminalIndex = -1;
+let endingStory = '';
+
+// Game state
+let gameClues = [];
+let currentClueIdx = 0;
+let collectedEvidence = [];
+let selectedSuspect = -1;
+
+// ── FIREBASE ──
+let db = null;
+
+async function initFirebase() {
+  try {
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    const { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc, setDoc, getDoc, getDocs } =
+      await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+
+    const app = initializeApp({
+      apiKey: "AIzaSyCoci7Wq2_tRwiSv3MQUvBzh8Vqd0xOG7A",
+      authDomain: "quiz-955b7.firebaseapp.com",
+      projectId: "quiz-955b7",
+      storageBucket: "quiz-955b7.firebasestorage.app",
+      messagingSenderId: "341104666043",
+      appId: "1:341104666043:web:22aebf87f01a7637dc509e"
+    }, 'escape');
+
+    db = getFirestore(app);
+
+    // 설정 로드
+    const snap = await getDoc(doc(db, 'escape_settings', 'main'));
+    if (snap.exists()) {
+      const d = snap.data();
+      if (d.adminPw) adminPw = d.adminPw;
+      if (d.studentCode) studentCode = d.studentCode;
+      if (d.suspects) suspects = d.suspects;
+      if (d.criminalIndex !== undefined) criminalIndex = d.criminalIndex;
+      if (d.endingStory) endingStory = d.endingStory;
+    }
+
+    // 단서 로드
+    const clueSnap = await getDocs(collection(db, 'escape_clues'));
+    clues = [];
+    clueSnap.forEach(d => clues.push({ id: d.id, ...d.data() }));
+    clues.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    renderAdminUI();
+
+    // window 에 firebase 함수 노출
+    window._fb = { db, collection, addDoc, deleteDoc, doc, setDoc, getDocs };
+  } catch(e) {
+    console.error('Firebase init error:', e);
+  }
+}
+
+initFirebase();
+
+// ── ROLE SELECT ──
+function selectRole(role) {
+  currentRole = role;
+  document.getElementById('card-student').classList.toggle('selected', role === 'student');
+  document.getElementById('card-admin').classList.toggle('selected', role === 'admin');
+  document.getElementById('pwArea').style.display = role === 'admin' ? 'block' : 'none';
+}
+
+// ── LOGIN ──
+function doLogin() {
+  if (currentRole === 'admin') {
+    const v = document.getElementById('adminPwInput').value;
+    if (v !== adminPw) {
+      document.getElementById('pwErr').style.display = 'block';
+      document.getElementById('adminPwInput').classList.add('shake');
+      setTimeout(() => document.getElementById('adminPwInput').classList.remove('shake'), 400);
+      return;
+    }
+    showScreen('admin');
+    renderAdminUI();
+  } else {
+    // 학생 — 참여코드 없으면 그냥 입장 (또는 체크)
+    startGame();
+  }
+}
+
+// ── SCREENS ──
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+function goIntro() { showScreen('intro'); document.getElementById('adminPwInput').value = ''; document.getElementById('pwErr').style.display='none'; }
+
+// ── ADMIN UI ──
+function renderAdminUI() {
+  renderClueList();
+  updateCriminalSelect();
+  if (endingStory) document.getElementById('endingStory').value = endingStory;
+  // 용의자 채우기
+  const cards = document.querySelectorAll('.suspect-input-card');
+  suspects.forEach((s, i) => {
+    if (cards[i]) {
+      cards[i].querySelector('.s-name').value = s.name || '';
+      cards[i].querySelector('.s-role').value = s.role || '';
+      cards[i].querySelector('.s-emoji').value = s.emoji || '';
+    }
+  });
+}
+
+function updateCriminalSelect() {
+  const sel = document.getElementById('criminalSelect');
+  const cards = document.querySelectorAll('.suspect-input-card');
+  const names = [];
+  cards.forEach(c => { const n = c.querySelector('.s-name').value.trim(); if(n) names.push(n); });
+  sel.innerHTML = '<option value="">— 선택 —</option>' + names.map((n,i) => `<option value="${i}" ${criminalIndex===i?'selected':''}>${n}</option>`).join('');
+}
+
+document.querySelectorAll('.s-name').forEach(inp => inp.addEventListener('input', updateCriminalSelect));
+
+function renderClueList() {
+  const list = document.getElementById('clueList');
+  document.getElementById('clueCountBadge').textContent = clues.length + '개';
+  if (!clues.length) {
+    list.innerHTML = '<li><div class="empty-state"><div class="e-icon">📭</div><p>아직 단서가 없어요</p></div></li>';
+    return;
+  }
+  list.innerHTML = clues.map((c, i) => `
+    <li class="clue-item">
+      <div class="clue-num">${i+1}</div>
+      <div class="clue-content">
+        <div class="clue-location">📍 ${c.location}</div>
+        <div class="clue-text">${esc(c.text)}</div>
+        <div class="clue-answer-text">정답: <span>${esc(c.answer)}</span> &nbsp;|&nbsp; 단서: ${esc(c.evidence)}</div>
+      </div>
+      <button class="del-btn" onclick="deleteClue('${c.id}', ${i})">삭제</button>
+    </li>
+  `).join('');
+}
+
+async function addClue() {
+  const location = document.getElementById('newClueLocation').value;
+  const text = document.getElementById('newClueText').value.trim();
+  const answer = document.getElementById('newClueAnswer').value.trim();
+  const evidence = document.getElementById('newClueEvidence').value.trim();
+  if (!text || !answer || !evidence) { alert('모두 입력해주세요!'); return; }
+
+  const clue = { location, text, answer, evidence, order: Date.now() };
+  if (window._fb) {
+    const ref = await window._fb.addDoc(window._fb.collection(window._fb.db, 'escape_clues'), clue);
+    clue.id = ref.id;
+  } else {
+    clue.id = 'local_' + Date.now();
+  }
+  clues.push(clue);
+  document.getElementById('newClueText').value = '';
+  document.getElementById('newClueAnswer').value = '';
+  document.getElementById('newClueEvidence').value = '';
+  renderClueList();
+}
+
+async function deleteClue(id, idx) {
+  if (!confirm('삭제할까요?')) return;
+  if (window._fb && !id.startsWith('local_')) {
+    await window._fb.deleteDoc(window._fb.doc(window._fb.db, 'escape_clues', id));
+  }
+  clues.splice(idx, 1);
+  renderClueList();
+}
+
+async function saveAndPreview() {
+  // 용의자 수집
+  const cards = document.querySelectorAll('.suspect-input-card');
+  suspects = [];
+  cards.forEach(c => {
+    const name = c.querySelector('.s-name').value.trim();
+    const role = c.querySelector('.s-role').value.trim();
+    const emoji = c.querySelector('.s-emoji').value.trim();
+    if (name) suspects.push({ name, role, emoji: emoji || '🧑' });
+  });
+  criminalIndex = parseInt(document.getElementById('criminalSelect').value);
+  endingStory = document.getElementById('endingStory').value.trim();
+
+  if (window._fb) {
+    await window._fb.setDoc(window._fb.doc(window._fb.db, 'escape_settings', 'main'), {
+      adminPw, studentCode, suspects, criminalIndex, endingStory
+    });
+  }
+  alert('✅ 저장됐어요!');
+}
+
+async function saveCodes() {
+  const ns = document.getElementById('newStudentCode').value.trim();
+  const nt = document.getElementById('newTeacherPw').value.trim();
+  if (ns) studentCode = ns;
+  if (nt) adminPw = nt;
+  if (window._fb) {
+    await window._fb.setDoc(window._fb.doc(window._fb.db, 'escape_settings', 'main'), {
+      adminPw, studentCode, suspects, criminalIndex, endingStory
+    });
+  }
+  document.getElementById('newStudentCode').value = '';
+  document.getElementById('newTeacherPw').value = '';
+  alert('✅ 코드 저장됐어요!');
+}
+
+// ── GAME ──
+const LOCATIONS = [
+  { key: '교실', icon: '🏫', desc: '낡은 칠판과 먼지 쌓인 책상들 사이에서 수상한 낌새가 느껴진다.' },
+  { key: '복도', icon: '🚪', desc: '텅 빈 복도에 발소리만 울린다. 누군가 이 길을 걸어갔다.' },
+  { key: '도서관', icon: '📚', desc: '책 냄새 속에 숨겨진 비밀이 있다. 서가 어딘가에 단서가 있을 것이다.' },
+  { key: '교무실', icon: '🗃️', desc: '선생님들의 서랍 속 무언가가 사건의 열쇠를 쥐고 있다.' },
+];
+
+function startGame() {
+  if (!clues.length) { alert('등록된 단서가 없어요! 선생님께 문의하세요.'); return; }
+  gameClues = [...clues];
+  currentClueIdx = 0;
+  collectedEvidence = [];
+  selectedSuspect = -1;
+  showScreen('game');
+  renderGameStep();
+}
+
+function renderGameStep() {
+  const body = document.getElementById('gameBody');
+  const total = gameClues.length;
+  const done = currentClueIdx;
+  const pct = total ? (done / (total + 1)) * 100 : 0;
+
+  document.getElementById('gameProgressFill').style.width = pct + '%';
+  document.getElementById('gameProgressText').textContent = `${done} / ${total}`;
+
+  if (currentClueIdx >= gameClues.length) {
+    // 최종 범인 지목
+    renderFinalStep();
+    return;
+  }
+
+  const clue = gameClues[currentClueIdx];
+  const loc = LOCATIONS.find(l => l.key === clue.location) || LOCATIONS[0];
+  document.getElementById('gameStageLabel').textContent = loc.icon + ' ' + loc.key;
+
+  let evidenceHTML = '';
+  if (collectedEvidence.length) {
+    evidenceHTML = `
+      <div class="evidence-collected">
+        <div class="evidence-title">🗂️ 수집한 단서</div>
+        <div class="evidence-items">
+          ${collectedEvidence.map(e => `<span class="evidence-tag">🔹 ${esc(e)}</span>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  body.innerHTML = `
+    <div class="location-header">
+      <div class="location-icon">${loc.icon}</div>
+      <div class="location-name">${loc.key}</div>
+      <div class="location-desc">${loc.desc}</div>
+    </div>
+    ${evidenceHTML}
+    <div class="clue-card">
+      <div class="clue-card-label">🔎 단서 #${currentClueIdx + 1}</div>
+      <div class="clue-card-text">${esc(clue.text)}</div>
+      <div class="answer-wrap">
+        <input type="text" id="gameAnswer" placeholder="정답을 입력하세요..." onkeydown="if(event.key==='Enter')submitAnswer()">
+        <button class="btn btn-gold" style="width:auto" onclick="submitAnswer()">제출</button>
+      </div>
+      <div class="feedback-box" id="gameFeedback">
+        <span id="gameFeedbackIcon"></span>
+        <span id="gameFeedbackText"></span>
+      </div>
+    </div>
+  `;
+  setTimeout(() => document.getElementById('gameAnswer') && document.getElementById('gameAnswer').focus(), 100);
+}
+
+function submitAnswer() {
+  const input = document.getElementById('gameAnswer');
+  if (!input) return;
+  const val = input.value.trim();
+  const clue = gameClues[currentClueIdx];
+  const fb = document.getElementById('gameFeedback');
+  const fbIcon = document.getElementById('gameFeedbackIcon');
+  const fbText = document.getElementById('gameFeedbackText');
+
+  if (val.toLowerCase() === clue.answer.trim().toLowerCase()) {
+    fb.className = 'feedback-box show correct';
+    fbIcon.textContent = '✅';
+    fbText.textContent = `정답! 단서를 획득했습니다 → 「${clue.evidence}」`;
+    collectedEvidence.push(clue.evidence);
+    input.disabled = true;
+    setTimeout(() => {
+      currentClueIdx++;
+      renderGameStep();
+    }, 1400);
+  } else {
+    fb.className = 'feedback-box show wrong';
+    fbIcon.textContent = '❌';
+    fbText.textContent = '틀렸어요. 다시 생각해보세요!';
+    input.value = '';
+    input.classList.add('shake');
+    setTimeout(() => { input.classList.remove('shake'); input.focus(); }, 400);
+  }
+}
+
+function renderFinalStep() {
+  document.getElementById('gameStageLabel').textContent = '🎯 최종 추리';
+  document.getElementById('gameProgressFill').style.width = '100%';
+  document.getElementById('gameProgressText').textContent = `${gameClues.length} / ${gameClues.length}`;
+
+  const body = document.getElementById('gameBody');
+  const suspectsHTML = suspects.map((s, i) => `
+    <div class="suspect-btn" id="sb_${i}" onclick="selectSuspect(${i})">
+      <div class="suspect-emoji">${s.emoji || '🧑'}</div>
+      <div class="suspect-name">${esc(s.name)}</div>
+      <div class="suspect-role">${esc(s.role)}</div>
+    </div>
+  `).join('');
+
+  let evidenceHTML = '';
+  if (collectedEvidence.length) {
+    evidenceHTML = `
+      <div class="evidence-collected" style="margin-bottom:28px">
+        <div class="evidence-title">🗂️ 최종 수집 단서</div>
+        <div class="evidence-items">
+          ${collectedEvidence.map(e => `<span class="evidence-tag">🔹 ${esc(e)}</span>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  body.innerHTML = `
+    ${evidenceHTML}
+    <div class="final-section">
+      <div class="final-title">범인은 누구인가?</div>
+      <div class="final-sub">수집한 단서를 바탕으로 범인을 지목하라.<br>신중하게 선택하라. 기회는 한 번이다.</div>
+      <div class="suspects-grid-game">${suspectsHTML}</div>
+      <button class="btn btn-red" style="max-width:300px" onclick="submitFinal()">🔍 범인 지목하기</button>
+    </div>
+  `;
+}
+
+function selectSuspect(i) {
+  selectedSuspect = i;
+  document.querySelectorAll('.suspect-btn').forEach(b => b.classList.remove('selected'));
+  const el = document.getElementById('sb_' + i);
+  if (el) el.classList.add('selected');
+}
+
+function submitFinal() {
+  if (selectedSuspect < 0) { alert('용의자를 선택해주세요!'); return; }
+  const isCorrect = selectedSuspect === criminalIndex;
+  const criminal = suspects[criminalIndex] || { name: '???', role: '', emoji: '❓' };
+  const chosen = suspects[selectedSuspect];
+
+  document.getElementById('resultIcon').textContent = isCorrect ? '🏆' : '💀';
+  document.getElementById('resultTitle').textContent = isCorrect ? '사건 해결!' : '수사 실패...';
+  document.getElementById('resultTitle').className = 'result-title ' + (isCorrect ? 'success' : 'fail');
+  document.getElementById('resultMsg').textContent = isCorrect
+    ? `탁월한 추리력! ${chosen.name}을(를) 범인으로 정확히 지목했습니다.`
+    : `아쉽습니다. ${chosen.name}은(는) 범인이 아니었어요. 범인은 따로 있었습니다.`;
+
+  document.getElementById('resultReveal').style.display = 'block';
+  document.getElementById('resultCriminalName').textContent = (criminal.emoji || '') + ' ' + criminal.name;
+  document.getElementById('resultCriminalRole').textContent = criminal.role;
+  document.getElementById('resultEnding').textContent = endingStory || '사건의 전말이 밝혀졌다.';
+
+  showScreen('result');
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
